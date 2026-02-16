@@ -1,74 +1,135 @@
-import { motion } from 'framer-motion';
-import { ShoppingBag, ChevronRight, Store, Truck, ScanLine, Zap } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShoppingBag, ChevronRight, Store, Truck, ScanLine, Zap, Shield, Clock, Sparkles, LogOut, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-const Landing = () => {
-    const { signInWithGoogle, user, signOut } = useAuth();
-    const navigate = useNavigate();
+/* Google "G" SVG logo – official brand colors */
+const GoogleLogo = () => (
+    <svg width="20" height="20" viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+        <path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 019.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.998 23.998 0 000 24c0 3.77.87 7.36 2.56 10.78l7.97-6.19z" />
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
+);
 
-    const handleLogin = async (role) => {
+/* Animated floating shapes for the hero background */
+const FloatingShape = ({ delay, size, x, y, color }) => (
+    <motion.div
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{
+            opacity: [0.1, 0.3, 0.1],
+            scale: [0.8, 1.2, 0.8],
+            x: [x, x + 30, x],
+            y: [y, y - 20, y],
+        }}
+        transition={{ duration: 8, delay, repeat: Infinity, ease: 'easeInOut' }}
+        className={`absolute rounded-full blur-2xl pointer-events-none ${color}`}
+        style={{ width: size, height: size }}
+    />
+);
+
+const Landing = () => {
+    const { signInWithGoogle, user, role, signOut } = useAuth();
+    const navigate = useNavigate();
+    const [loginLoading, setLoginLoading] = useState(null); // 'customer' | 'owner'
+
+    const handleLogin = async (selectedRole) => {
+        setLoginLoading(selectedRole);
         try {
-            await signInWithGoogle(role);
-            if (role === 'customer') navigate('/store-entry');
-            if (role === 'owner') navigate('/store-entry');
+            await signInWithGoogle(selectedRole);
+            if (selectedRole === 'owner') {
+                navigate('/owner-dashboard');
+            }
+            // customer stays on '/' — shows the Scan & Go / Delivery choice page
         } catch (error) {
             console.error("Login failed:", error);
+        } finally {
+            setLoginLoading(null);
         }
     };
 
-    // If already logged in, show the home dashboard
+    /* ─────────────── REDIRECT OWNER TO DASHBOARD ─────────────── */
+    useEffect(() => {
+        if (user && role === 'owner') {
+            navigate('/owner-dashboard', { replace: true });
+        }
+    }, [user, role, navigate]);
+
+    if (user && role === 'owner') return null; // avoid flash while redirecting
+
+    /* ─────────────── LOGGED-IN CUSTOMER DASHBOARD ─────────────── */
     if (user) {
+        const displayName = user.user_metadata?.full_name || user.email || 'User';
+        const hour = new Date().getHours();
+        const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
+
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
-                {/* Nav */}
-                <div className="flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-10">
-                    <div className="flex items-center gap-2">
-                        <div className="p-2 bg-primary/10 rounded-xl">
-                            <ShoppingBag className="w-5 h-5 text-primary" />
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-primary-50/30">
+                {/* Glassmorphism Nav */}
+                <div className="flex items-center justify-between px-6 py-4 bg-white/70 backdrop-blur-xl border-b border-white/50 sticky top-0 z-10">
+                    <div className="flex items-center gap-2.5">
+                        <div className="p-2 bg-gradient-to-br from-primary to-primary-600 rounded-xl shadow-lg shadow-primary/20">
+                            <ShoppingBag className="w-5 h-5 text-white" />
                         </div>
-                        <h1 className="text-xl font-bold text-slate-900">SwiftCart</h1>
+                        <h1 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">SwiftCart</h1>
                     </div>
-                    <button
-                        onClick={() => {
-                            signOut();
-                            window.location.reload();
-                        }}
-                        className="text-sm text-slate-500 hover:text-slate-700"
-                    >
-                        Sign Out
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 bg-slate-50 rounded-full pl-1 pr-3 py-1">
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                                <User size={14} className="text-white" />
+                            </div>
+                            <span className="text-xs font-medium text-slate-700 hidden sm:inline">{displayName}</span>
+                        </div>
+                        <button
+                            onClick={() => { signOut(); window.location.reload(); }}
+                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                            title="Sign Out"
+                        >
+                            <LogOut size={18} />
+                        </button>
+                    </div>
                 </div>
 
-                <div className="p-6 max-w-lg mx-auto space-y-6 pt-8">
-                    <div>
-                        <h2 className="text-2xl font-bold text-slate-900">Welcome back! 👋</h2>
+                <div className="p-6 max-w-lg mx-auto space-y-6 pt-6">
+                    {/* Greeting */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        <p className="text-sm text-primary font-semibold uppercase tracking-wider">{greeting}</p>
+                        <h2 className="text-3xl font-bold text-slate-900 mt-1">{displayName} 👋</h2>
                         <p className="text-slate-500 mt-1">What would you like to do today?</p>
-                    </div>
+                    </motion.div>
 
                     {/* Scan & Go Card */}
                     <motion.button
-                        whileHover={{ scale: 1.02 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => navigate('/store-entry')}
-                        className="w-full text-left bg-gradient-to-br from-primary-500 to-primary-600 text-white rounded-2xl p-6 shadow-xl shadow-primary/20 relative overflow-hidden"
+                        className="w-full text-left bg-gradient-to-br from-primary-500 via-primary to-emerald-600 text-white rounded-3xl p-6 shadow-2xl shadow-primary/25 relative overflow-hidden group"
                     >
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10" />
-                        <div className="absolute bottom-0 right-0 w-20 h-20 bg-white/5 rounded-full -mr-5 -mb-5" />
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-125 transition-transform duration-700" />
+                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-8 -mb-8" />
+                        <div className="absolute top-1/2 right-8 w-16 h-16 bg-white/5 rounded-full" />
                         <div className="relative z-10">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="p-3 bg-white/20 rounded-xl">
-                                    <ScanLine size={24} />
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-3.5 bg-white/20 backdrop-blur-md rounded-2xl shadow-inner">
+                                    <ScanLine size={26} />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-bold">Scan & Go</h3>
+                                    <h3 className="text-xl font-bold">Scan & Go</h3>
                                     <p className="text-sm text-white/80">In-store self-checkout</p>
                                 </div>
                             </div>
-                            <p className="text-sm text-white/70 mb-4">
-                                Scan products, pay instantly, and skip the checkout line
+                            <p className="text-sm text-white/70 mb-5 leading-relaxed">
+                                Scan products with your camera, pay instantly, and walk out — no lines, no wait.
                             </p>
-                            <div className="flex items-center gap-1 text-sm font-medium">
+                            <div className="flex items-center gap-2 text-sm font-semibold bg-white/15 backdrop-blur-sm w-fit px-4 py-2 rounded-full">
                                 Start Shopping <ChevronRight size={16} />
                             </div>
                         </div>
@@ -76,165 +137,232 @@ const Landing = () => {
 
                     {/* Direct Delivery Card */}
                     <motion.button
-                        whileHover={{ scale: 1.02 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => navigate('/delivery')}
-                        className="w-full text-left bg-gradient-to-br from-secondary-500 to-secondary-600 text-white rounded-2xl p-6 shadow-xl shadow-secondary/20 relative overflow-hidden"
+                        className="w-full text-left bg-gradient-to-br from-secondary-500 via-secondary to-purple-700 text-white rounded-3xl p-6 shadow-2xl shadow-secondary/25 relative overflow-hidden group"
                     >
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10" />
-                        <div className="absolute bottom-0 right-0 w-20 h-20 bg-white/5 rounded-full -mr-5 -mb-5" />
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-125 transition-transform duration-700" />
+                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-8 -mb-8" />
                         <div className="relative z-10">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="p-3 bg-white/20 rounded-xl">
-                                    <Truck size={24} />
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-3.5 bg-white/20 backdrop-blur-md rounded-2xl shadow-inner">
+                                    <Truck size={26} />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-bold">Direct Delivery</h3>
+                                    <h3 className="text-xl font-bold">Direct Delivery</h3>
                                     <p className="text-sm text-white/80">Zero-commission local delivery</p>
                                 </div>
                             </div>
-                            <p className="text-sm text-white/70 mb-4">
-                                Order from 5 local shops with live tracking
+                            <p className="text-sm text-white/70 mb-5 leading-relaxed">
+                                Order from 5 trusted local shops with real-time tracking — delivered to your door.
                             </p>
-                            <div className="flex items-center gap-1 text-sm font-medium">
+                            <div className="flex items-center gap-2 text-sm font-semibold bg-white/15 backdrop-blur-sm w-fit px-4 py-2 rounded-full">
                                 Order Now <ChevronRight size={16} />
                             </div>
                         </div>
                     </motion.button>
 
                     {/* Feature badges */}
-                    <div className="grid grid-cols-3 gap-3 pt-2">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="grid grid-cols-3 gap-3"
+                    >
                         {[
-                            { icon: Zap, label: 'Instant Checkout' },
-                            { icon: Store, label: 'Local Shops' },
-                            { icon: ShoppingBag, label: 'Zero Commission' },
-                        ].map(({ icon: Icon, label }) => (
-                            <div key={label} className="bg-white rounded-xl p-3 text-center shadow-card">
-                                <Icon size={20} className="mx-auto text-slate-400 mb-1" />
-                                <p className="text-[10px] font-semibold text-slate-500">{label}</p>
+                            { icon: Zap, label: 'Instant\nCheckout', color: 'text-amber-500 bg-amber-50' },
+                            { icon: Shield, label: 'Secure\nPayment', color: 'text-primary bg-primary-50' },
+                            { icon: Clock, label: '10-min\nDelivery', color: 'text-secondary bg-secondary-50' },
+                        ].map(({ icon: Icon, label, color }) => (
+                            <div key={label} className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 text-center shadow-card border border-white/50 hover:shadow-lg transition-shadow">
+                                <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center mx-auto mb-2`}>
+                                    <Icon size={20} />
+                                </div>
+                                <p className="text-[11px] font-semibold text-slate-600 whitespace-pre-line leading-tight">{label}</p>
                             </div>
                         ))}
-                    </div>
+                    </motion.div>
                 </div>
             </div>
         );
     }
 
-    // Login screen
+    /* ─────────────── LOGIN SCREEN ─────────────── */
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans overflow-hidden">
-            {/* Left Section: Branding */}
+        <div className="min-h-screen bg-slate-950 flex flex-col lg:flex-row font-sans overflow-hidden">
+            {/* Left Hero Section */}
             <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8 }}
-                className="w-full md:w-1/2 bg-gradient-to-br from-slate-900 to-slate-800 text-white p-8 md:p-16 flex flex-col justify-between relative overflow-hidden min-h-[40vh] md:min-h-screen"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1 }}
+                className="w-full lg:w-[55%] relative flex flex-col justify-center p-8 md:p-16 min-h-[50vh] lg:min-h-screen"
             >
-                <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-                    <div className="absolute top-20 left-20 w-64 h-64 rounded-full bg-primary blur-3xl"></div>
-                    <div className="absolute bottom-20 right-20 w-80 h-80 rounded-full bg-accent blur-3xl"></div>
-                </div>
+                {/* Animated background shapes */}
+                <FloatingShape delay={0} size={300} x={-50} y={-30} color="bg-primary" />
+                <FloatingShape delay={2} size={200} x={200} y={100} color="bg-secondary" />
+                <FloatingShape delay={4} size={250} x={100} y={300} color="bg-accent" />
+                <FloatingShape delay={1} size={150} x={350} y={-50} color="bg-blue-500" />
 
-                <div className="z-10">
-                    <div className="flex items-center gap-3 mb-8">
-                        <div className="p-3 bg-white/10 rounded-xl backdrop-blur-md">
+                {/* Content */}
+                <div className="relative z-10 max-w-xl">
+                    {/* Logo */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="flex items-center gap-3 mb-12"
+                    >
+                        <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10">
                             <ShoppingBag className="w-8 h-8 text-primary-400" />
                         </div>
-                        <h1 className="text-3xl font-bold tracking-tight">SwiftCart</h1>
-                    </div>
+                        <span className="text-2xl font-bold text-white tracking-tight">SwiftCart</span>
+                    </motion.div>
 
-                    <div className="space-y-6 max-w-lg">
-                        <h2 className="text-4xl md:text-5xl font-bold leading-tight">
-                            Skip the line, <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-emerald-200">
-                                save the time.
-                            </span>
-                        </h2>
-                        <p className="text-slate-400 text-lg md:text-xl font-light italic">
-                            "Your time is currency, spend it wisely."
-                        </p>
-                    </div>
-                </div>
+                    {/* Heading */}
+                    <motion.h1
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] mb-6"
+                    >
+                        Skip the line,{' '}
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-emerald-300 to-teal-200">
+                            save the time.
+                        </span>
+                    </motion.h1>
 
-                <div className="z-10 mt-8 md:mt-0">
-                    <p className="text-sm text-slate-500 uppercase tracking-widest mb-4">Trusted by 500+ Local Stores</p>
-                    <div className="flex -space-x-3">
-                        {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="w-10 h-10 rounded-full bg-slate-700 border-2 border-slate-800 flex items-center justify-center text-xs text-slate-400">
-                                U{i}
+                    <motion.p
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.7 }}
+                        className="text-lg text-slate-400 mb-10 max-w-md leading-relaxed"
+                    >
+                        Scan in-store, pay instantly, or get local deliveries in minutes —
+                        all with <span className="text-white font-medium">zero commission</span>.
+                    </motion.p>
+
+                    {/* Stats */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.9 }}
+                        className="flex gap-8"
+                    >
+                        {[
+                            { value: '500+', label: 'Stores' },
+                            { value: '2K+', label: 'Users' },
+                            { value: '10min', label: 'Delivery' },
+                        ].map(s => (
+                            <div key={s.label}>
+                                <p className="text-2xl font-bold text-white">{s.value}</p>
+                                <p className="text-xs text-slate-500 uppercase tracking-wider">{s.label}</p>
                             </div>
                         ))}
-                        <div className="w-10 h-10 rounded-full bg-primary/20 border-2 border-slate-800 flex items-center justify-center text-xs text-primary-400">
-                            +2k
-                        </div>
-                    </div>
+                    </motion.div>
                 </div>
             </motion.div>
 
-            {/* Right Section: Auth */}
+            {/* Right Auth Section */}
             <motion.div
-                initial={{ opacity: 0, x: 50 }}
+                initial={{ opacity: 0, x: 60 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-                className="w-full md:w-1/2 p-8 md:p-16 flex flex-col justify-center items-center bg-white"
+                transition={{ duration: 0.8, delay: 0.3 }}
+                className="w-full lg:w-[45%] flex items-center justify-center p-8 md:p-16"
             >
-                <div className="max-w-md w-full space-y-8">
-                    <div className="text-center md:text-left">
-                        <h3 className="text-3xl font-bold text-slate-900 mb-2">Get Started</h3>
-                        <p className="text-slate-500">Choose your role to continue</p>
+                <div className="w-full max-w-md bg-white/[0.07] backdrop-blur-2xl border border-white/10 rounded-3xl p-8 md:p-10 shadow-2xl">
+                    <div className="text-center mb-8">
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: 'spring', delay: 0.6 }}
+                            className="w-16 h-16 bg-gradient-to-br from-primary to-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/30"
+                        >
+                            <Sparkles size={28} className="text-white" />
+                        </motion.div>
+                        <h3 className="text-2xl font-bold text-white mb-1">Welcome to SwiftCart</h3>
+                        <p className="text-slate-400 text-sm">Sign in with Google to continue</p>
                     </div>
 
-                    <div className="space-y-4">
-                        {/* Customer */}
+                    <div className="space-y-3">
+                        {/* Google Login - Customer */}
                         <motion.button
-                            whileHover={{ scale: 1.02, boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.15)" }}
+                            whileHover={{ scale: 1.02, boxShadow: '0 8px 30px rgba(16,185,129,0.15)' }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => handleLogin('customer')}
-                            className="w-full flex items-center justify-between p-5 md:p-6 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-primary transition-all group"
+                            disabled={loginLoading !== null}
+                            className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all group relative overflow-hidden"
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="p-4 bg-primary-50 text-primary rounded-xl group-hover:bg-primary group-hover:text-white transition-colors">
-                                    <ShoppingBag size={24} />
+                            {loginLoading === 'customer' ? (
+                                <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+                                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                        className="w-5 h-5 border-2 border-primary-200 border-t-primary rounded-full" />
                                 </div>
-                                <div className="text-left">
-                                    <h4 className="font-bold text-slate-900 text-lg">I'm a Shopper</h4>
-                                    <p className="text-sm text-slate-500">Scan items & checkout instantly</p>
+                            ) : (
+                                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center group-hover:bg-primary-50 transition-colors">
+                                    <GoogleLogo />
                                 </div>
+                            )}
+                            <div className="text-left flex-1">
+                                <p className="font-semibold text-slate-900 text-sm">Continue as Shopper</p>
+                                <p className="text-xs text-slate-500">Sign in with Google</p>
                             </div>
-                            <ChevronRight className="text-slate-300 group-hover:text-primary transition-colors" />
+                            <div className="p-2 bg-primary-50 rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                                <ShoppingBag size={16} />
+                            </div>
                         </motion.button>
 
-                        {/* Store Owner */}
+                        {/* Google Login - Store Owner */}
                         <motion.button
-                            whileHover={{ scale: 1.02, boxShadow: "0 10px 25px -5px rgba(245, 158, 11, 0.15)" }}
+                            whileHover={{ scale: 1.02, boxShadow: '0 8px 30px rgba(245,158,11,0.15)' }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => handleLogin('owner')}
-                            className="w-full flex items-center justify-between p-5 md:p-6 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-accent transition-all group"
+                            disabled={loginLoading !== null}
+                            className="w-full flex items-center gap-4 p-4 bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl hover:bg-white/15 transition-all group"
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="p-4 bg-accent-50 text-accent rounded-xl group-hover:bg-accent group-hover:text-white transition-colors">
-                                    <Store size={24} />
+                            {loginLoading === 'owner' ? (
+                                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                        className="w-5 h-5 border-2 border-white/20 border-t-accent rounded-full" />
                                 </div>
-                                <div className="text-left">
-                                    <h4 className="font-bold text-slate-900 text-lg">I'm a Store Owner</h4>
-                                    <p className="text-sm text-slate-500">Manage inventory & orders</p>
+                            ) : (
+                                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+                                    <GoogleLogo />
                                 </div>
+                            )}
+                            <div className="text-left flex-1">
+                                <p className="font-semibold text-white text-sm">Continue as Store Owner</p>
+                                <p className="text-xs text-slate-400">Sign in with Google</p>
                             </div>
-                            <ChevronRight className="text-slate-300 group-hover:text-accent transition-colors" />
+                            <div className="p-2 bg-white/10 rounded-lg text-accent group-hover:bg-accent group-hover:text-white transition-colors">
+                                <Store size={16} />
+                            </div>
                         </motion.button>
                     </div>
 
-                    {/* Divider with "Continue with Google" */}
-                    <div className="relative">
+                    {/* Divider */}
+                    <div className="relative my-6">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-slate-200" />
+                            <div className="w-full border-t border-white/10" />
                         </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-white px-3 text-slate-400">Powered by Google OAuth</span>
+                        <div className="relative flex justify-center">
+                            <span className="bg-transparent px-3 text-xs text-slate-500 uppercase tracking-widest">Secure Login</span>
                         </div>
                     </div>
 
-                    <p className="text-center text-sm text-slate-400">
+                    {/* Trust badges */}
+                    <div className="flex items-center justify-center gap-4 text-[11px] text-slate-500">
+                        <span className="flex items-center gap-1"><Shield size={12} /> Encrypted</span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1"><GoogleLogo /> Google OAuth</span>
+                        <span>•</span>
+                        <span>No passwords</span>
+                    </div>
+
+                    <p className="text-center text-[11px] text-slate-600 mt-6">
                         By continuing, you agree to SwiftCart's Terms of Service.
                     </p>
                 </div>

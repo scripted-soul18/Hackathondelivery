@@ -6,6 +6,7 @@ import ScanAndGo from './pages/ScanAndGo';
 import DirectDelivery from './pages/DirectDelivery';
 import Checkout from './pages/Checkout';
 import LiveTracking from './pages/LiveTracking';
+import OwnerDashboard from './pages/OwnerDashboard';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/delivery" element={<DirectDelivery />} />
           <Route path="/tracking" element={<LiveTracking />} />
+          <Route path="/owner-dashboard" element={<OwnerDashboard />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
