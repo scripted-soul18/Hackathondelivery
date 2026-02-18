@@ -8,43 +8,68 @@ export function AuthProvider({ children }) {
     const [role, setRole] = useState(null); // 'customer' or 'owner'
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+//**improvement - Extracted role fetcher from DB (secure,not localstorage)
         // Check initial session
-        const checkSession = async () => {
-            if (supabase) {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                    setUser(session.user);
-                    // Fetch role from DB or metadata here
-                }
+        const fetchRoleFromDB = async (userId) =>{
+            const{data, error} = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', userId)
+                .single();
+            if (!error && data?.role) {
+                setRole(data.role);
             }
-            setLoading(false);
+        };
+        useEffect(() => {
+            const checkSession = async () => {
+                try {
+                    if (supabase) {
+                        const { data:{session}} = await supabase.auth.getSession();
+                        if(session){
+                            setUser(session.user);
+                            await fetchRoleFromDB(session.user.id);
+                            localStorage.removeItem('pendingRole); 
+                        }
+                    }   
+        
+            } catch(err) {
+                    //catch errors so that the app doesnt silently break
+                    console.error('Session check failed:',err);
+            } finally {   
+                    setLoading(false);
+            } 
         };
         checkSession();
 
-        // Listen for auth changes
         if (supabase) {
-            const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-                setUser(session?.user ?? null);
+            const { data:{subscription}}=supabase.auth.onAuthStateChange(async (_event,session) => {
+                setUser(session?.user??null);
+
+
+                if (session?.user){
+                    await fetchRoleFromDB(session.user.id);
+                }else{
+                    setRole(null);
+                }
             });
             return () => subscription.unsubscribe();
-        }
-    }, []);
-
+        } 
+    },[]);
     const signInWithGoogle = async (selectedRole) => {
-        if (supabase) {
-            // In real app, we'd store the selected role in metadata or local storage 
-            // to assign it after redirect
-            localStorage.setItem('pendingRole', selectedRole);
-            const { error } = await supabase.auth.signInWithOAuth({
+        if (supabase){
+            //store selected role so we can save it to DB after redirect
+            //we will have to save these role to profile tables which is created in supabase
+
+            localStorage.setItem('pendingRole',selectedRole);
+
+            const {error} = await supabase.auth.signInWithOAuth({
                 provider: 'google',
-                options: {
+                options:{
                     redirectTo: window.location.origin
                 }
             });
-            if (error) throw error;
-        } else {
-            // MOCK LOGIN
+            if(error) throw error;
+        }else{
             const mockUser = {
                 id: 'mock-user-123',
                 email: 'mockuser@example.com',
@@ -52,7 +77,7 @@ export function AuthProvider({ children }) {
             };
             setUser(mockUser);
             setRole(selectedRole);
-            localStorage.setItem('swiftcart_role', selectedRole);
+            localStorage.setItem('swiftcart_role',selectedRole);
         }
     };
 
@@ -63,13 +88,20 @@ export function AuthProvider({ children }) {
         setUser(null);
         setRole(null);
         localStorage.removeItem('swiftcart_role');
+        // ✅ IMPROVEMENT 5: Also remove pendingRole on sign out (was missing before)
+        localStorage.removeItem('pendingRole');
     };
 
     return (
-        <AuthContext.Provider value={{ user, role, loading, signInWithGoogle, signOut }}>
+        // ✅ IMPROVEMENT 6: Exposed setRole in context so other components can update role if needed
+        <AuthContext.Provider value={{ user, role, setRole, loading, signInWithGoogle, signOut }}>
             {children}
         </AuthContext.Provider>
     );
 }
 
 export const useAuth = () => useContext(AuthContext);
+
+                                                                                                    
+                                                                                                    
+        
