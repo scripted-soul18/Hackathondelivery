@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Minus, ShoppingBag, Store, ChevronRight, ArrowLeft, Check, Search, X, MessageSquare, Star, Filter, SlidersHorizontal } from 'lucide-react';
-import { PRODUCTS, LOCAL_SHOPS } from '../data/mockData';
+import { PRODUCTS, LOCAL_SHOPS } from './data/mockData';
 
 /* ─── Category definitions ─── */
 const CATEGORIES = [
@@ -100,20 +100,20 @@ const DirectDelivery = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex flex-col">
-            {/* ─── HEADER ─── */}
-            <div className="bg-white/80 backdrop-blur-xl border-b border-slate-100/50 sticky top-0 z-20">
-                <div className="px-4 py-3 flex items-center justify-between">
+        <div className="min-h-screen bg-[#f5f5f5] flex flex-col">
+            {/* Blinkit-style header */}
+            <header className="bg-[#18181b] text-white sticky top-0 z-20 shadow-md">
+                <div className="px-4 py-3 flex items-center justify-between max-w-lg mx-auto">
                     <div className="flex items-center gap-2">
                         {step !== 'items' && (
-                            <button onClick={() => setStep(step === 'confirm' ? 'shop' : 'items')} className="p-2 hover:bg-slate-50 rounded-xl transition-colors">
+                            <button onClick={() => setStep(step === 'confirm' ? 'shop' : 'items')} className="p-2 hover:bg-white/10 rounded-xl transition-colors text-white">
                                 <ArrowLeft size={20} />
                             </button>
                         )}
                         <div>
-                            <h1 className="font-bold text-lg text-slate-900">Direct Delivery</h1>
-                            <p className="text-xs text-slate-400">
-                                {step === 'items' ? `${DELIVERY_ITEMS.length} items available` : step === 'shop' ? 'Choose a shop' : 'Review order'}
+                            <h1 className="font-bold text-lg text-white">Direct Delivery</h1>
+                            <p className="text-xs text-white/60">
+                                {step === 'items' ? `${DELIVERY_ITEMS.length} items` : step === 'shop' ? 'Choose a shop' : 'Review order'}
                             </p>
                         </div>
                     </div>
@@ -123,29 +123,29 @@ const DirectDelivery = () => {
                             animate={{ scale: 1 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setStep('shop')}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-secondary to-purple-600 text-white rounded-2xl text-sm font-semibold shadow-lg shadow-secondary/25"
+                            className="flex items-center gap-2 px-4 py-2.5 bg-[#facc15] text-[#18181b] rounded-xl text-sm font-bold shadow-lg"
                         >
                             <ShoppingBag size={16} />
                             <span>{totalCount}</span>
-                            <span className="text-white/70">·</span>
+                            <span className="opacity-70">·</span>
                             <span>₹{totalPrice.toFixed(0)}</span>
                         </motion.button>
                     )}
                 </div>
-            </div>
+            </header>
 
             {/* ─────────────── ITEMS STEP ─────────────── */}
             {step === 'items' && (
                 <>
                     {/* Search + Filters */}
-                    <div className="px-4 pt-3 space-y-3">
+                    <div className="px-4 pt-3 space-y-3 max-w-lg mx-auto">
                         <div className="relative">
                             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                             <input
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 placeholder="Search fruits, dairy, snacks..."
-                                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary shadow-sm"
+                                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#facc15]/30 focus:border-[#facc15] shadow-sm"
                             />
                             {search && (
                                 <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded-full">
@@ -161,7 +161,7 @@ const DirectDelivery = () => {
                                     key={cat.key}
                                     onClick={() => setActiveCategory(cat.key)}
                                     className={`flex-shrink-0 px-3.5 py-2 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${activeCategory === cat.key
-                                            ? 'bg-secondary text-white shadow-md shadow-secondary/20'
+                                            ? 'bg-[#18181b] text-white shadow-md'
                                             : cat.color + ' hover:opacity-80'
                                         }`}
                                 >
@@ -172,7 +172,7 @@ const DirectDelivery = () => {
                     </div>
 
                     {/* Product Grid */}
-                    <div className="flex-1 overflow-y-auto p-4">
+                    <div className="flex-1 overflow-y-auto p-4 max-w-lg mx-auto">
                         {filteredItems.length === 0 ? (
                             <div className="text-center py-16 text-slate-400">
                                 <Search size={40} className="mx-auto mb-3 opacity-30" />
@@ -186,7 +186,7 @@ const DirectDelivery = () => {
                                         key={item.id}
                                         layout
                                         whileTap={{ scale: 0.98 }}
-                                        className="bg-white rounded-2xl overflow-hidden shadow-card border border-slate-100/50 group"
+                                        className="bg-white rounded-xl overflow-hidden shadow-card border border-slate-100 group"
                                     >
                                         <div className="relative">
                                             <img
@@ -204,14 +204,14 @@ const DirectDelivery = () => {
                                                 <motion.div
                                                     initial={{ scale: 0 }}
                                                     animate={{ scale: 1 }}
-                                                    className="absolute top-2 right-2 bg-secondary text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-lg shadow-secondary/30"
+                                                    className="absolute top-2 right-2 bg-[#facc15] text-[#18181b] w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-lg"
                                                 >
                                                     {cart[item.id].qty}
                                                 </motion.div>
                                             )}
                                             {/* Note indicator */}
                                             {cart[item.id]?.note && (
-                                                <div className="absolute bottom-2 left-2 bg-secondary/90 text-white text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                <div className="absolute bottom-2 left-2 bg-[#18181b]/90 text-white text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1">
                                                     <MessageSquare size={8} /> Note
                                                 </div>
                                             )}
@@ -220,17 +220,17 @@ const DirectDelivery = () => {
                                             <h4 className="text-sm font-semibold text-slate-900 truncate">{item.name}</h4>
                                             <p className="text-xs text-slate-400 mt-0.5">{item.weight}kg</p>
                                             <div className="flex items-center justify-between mt-2.5">
-                                                <p className="text-sm font-bold text-secondary">₹{item.price.toFixed(2)}</p>
+                                                <p className="text-sm font-bold text-[#18181b]">₹{item.price.toFixed(2)}</p>
                                                 {cart[item.id] ? (
                                                     <div className="flex items-center gap-1">
                                                         <button onClick={() => removeItem(item.id)} className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-500 flex items-center justify-center transition-colors"><Minus size={12} /></button>
                                                         <span className="w-6 text-center text-xs font-bold">{cart[item.id].qty}</span>
-                                                        <button onClick={() => addItem(item.id)} className="w-7 h-7 rounded-lg bg-secondary/10 text-secondary hover:bg-secondary hover:text-white flex items-center justify-center transition-colors"><Plus size={12} /></button>
+                                                        <button onClick={() => addItem(item.id)} className="w-7 h-7 rounded-lg bg-[#fef9c3] text-[#ca8a04] hover:bg-[#facc15] hover:text-[#18181b] flex items-center justify-center transition-colors"><Plus size={12} /></button>
                                                     </div>
                                                 ) : (
                                                     <button
                                                         onClick={() => addItem(item.id)}
-                                                        className="px-3 py-1.5 border-2 border-secondary text-secondary rounded-xl text-xs font-bold hover:bg-secondary hover:text-white transition-all"
+                                                        className="px-3 py-1.5 border-2 border-[#18181b] text-[#18181b] rounded-lg text-xs font-bold hover:bg-[#18181b] hover:text-white transition-all"
                                                     >
                                                         + ADD
                                                     </button>
@@ -242,7 +242,7 @@ const DirectDelivery = () => {
                                                     initial={{ opacity: 0, height: 0 }}
                                                     animate={{ opacity: 1, height: 'auto' }}
                                                     onClick={() => openNoteEditor(item.id)}
-                                                    className="w-full mt-2 py-1.5 text-[10px] font-semibold text-secondary bg-secondary/5 hover:bg-secondary/10 rounded-lg flex items-center justify-center gap-1 transition-colors"
+                                                    className="w-full mt-2 py-1.5 text-[10px] font-semibold text-[#18181b] bg-slate-100 hover:bg-slate-200 rounded-lg flex items-center justify-center gap-1 transition-colors"
                                                 >
                                                     <SlidersHorizontal size={10} />
                                                     {cart[item.id].note ? 'Edit Note' : 'Add Special Request'}
@@ -287,7 +287,7 @@ const DirectDelivery = () => {
                                             <button
                                                 key={tag}
                                                 onClick={() => setNoteText(prev => prev ? `${prev}, ${tag}` : tag)}
-                                                className="px-3 py-1.5 bg-secondary/5 hover:bg-secondary/10 text-secondary text-xs font-medium rounded-full border border-secondary/20 transition-colors"
+                                                className="px-3 py-1.5 bg-[#fef9c3] hover:bg-[#facc15]/30 text-[#ca8a04] text-xs font-medium rounded-full border border-[#facc15]/40 transition-colors"
                                             >
                                                 {tag}
                                             </button>
@@ -297,7 +297,7 @@ const DirectDelivery = () => {
                                         value={noteText}
                                         onChange={e => setNoteText(e.target.value)}
                                         placeholder="e.g., Pick the freshest batch, avoid bruised items..."
-                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary resize-none h-24"
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#facc15]/30 focus:border-[#facc15] resize-none h-24"
                                     />
                                     <div className="flex gap-2 mt-4">
                                         <button
@@ -309,7 +309,7 @@ const DirectDelivery = () => {
                                         <motion.button
                                             whileTap={{ scale: 0.98 }}
                                             onClick={() => saveNote(editingNote)}
-                                            className="flex-1 py-3 bg-secondary text-white rounded-xl text-sm font-semibold shadow-lg shadow-secondary/20"
+                                            className="flex-1 py-3 bg-[#18181b] text-white rounded-xl text-sm font-semibold shadow-lg"
                                         >
                                             Save Note
                                         </motion.button>
@@ -323,7 +323,7 @@ const DirectDelivery = () => {
 
             {/* ─────────────── SHOP SELECTION ─────────────── */}
             {step === 'shop' && (
-                <div className="flex-1 p-4 space-y-3">
+                <div className="flex-1 p-4 space-y-3 max-w-lg mx-auto">
                     <h2 className="font-bold text-slate-900 text-lg">Choose a Local Shop</h2>
                     <p className="text-sm text-slate-500 -mt-1">Zero commission, direct from the source</p>
                     {LOCAL_SHOPS.map((shop, idx) => (
@@ -334,21 +334,21 @@ const DirectDelivery = () => {
                             transition={{ delay: idx * 0.08 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => { setSelectedShop(shop); setStep('confirm'); }}
-                            className="w-full flex items-center justify-between p-5 bg-white rounded-2xl shadow-card border-2 border-transparent hover:border-secondary/30 transition-all group"
+                            className="w-full flex items-center justify-between p-5 bg-white rounded-xl shadow-card border-2 border-transparent hover:border-[#facc15] transition-all group"
                         >
                             <div className="flex items-center gap-4">
-                                <div className="p-3.5 bg-gradient-to-br from-secondary/10 to-purple-100 rounded-2xl group-hover:from-secondary group-hover:to-purple-500 transition-all">
-                                    <Store size={22} className="text-secondary group-hover:text-white transition-colors" />
+                                <div className="p-3.5 bg-[#fef9c3] rounded-xl group-hover:bg-[#facc15] transition-all">
+                                    <Store size={22} className="text-[#ca8a04] group-hover:text-[#18181b] transition-colors" />
                                 </div>
                                 <div className="text-left">
                                     <h4 className="font-semibold text-slate-900">{shop.name}</h4>
                                     <div className="flex items-center gap-2 mt-0.5">
-                                        <span className="text-xs text-secondary font-medium bg-secondary/5 px-2 py-0.5 rounded-full">ETA: {shop.eta}</span>
+                                        <span className="text-xs text-[#ca8a04] font-medium bg-[#fef9c3] px-2 py-0.5 rounded-full">ETA: {shop.eta}</span>
                                         <span className="text-[10px] text-slate-400">• Free delivery</span>
                                     </div>
                                 </div>
                             </div>
-                            <ChevronRight size={18} className="text-slate-300 group-hover:text-secondary transition-colors" />
+                            <ChevronRight size={18} className="text-slate-300 group-hover:text-[#18181b] transition-colors" />
                         </motion.button>
                     ))}
                 </div>
@@ -356,13 +356,13 @@ const DirectDelivery = () => {
 
             {/* ─────────────── ORDER CONFIRMATION ─────────────── */}
             {step === 'confirm' && selectedShop && (
-                <div className="flex-1 p-4 space-y-4 pb-8">
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-5 shadow-card border border-slate-100/50">
+                <div className="flex-1 p-4 space-y-4 pb-8 max-w-lg mx-auto">
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-xl p-5 shadow-card border border-slate-100">
                         <div className="flex items-center justify-between mb-1">
                             <h2 className="font-bold text-slate-900">Order Summary</h2>
-                            <button onClick={() => setStep('items')} className="text-xs text-secondary font-semibold">Edit Items</button>
+                            <button onClick={() => setStep('items')} className="text-xs text-[#ca8a04] font-semibold">Edit Items</button>
                         </div>
-                        <p className="text-sm text-slate-400 mb-4">From <span className="font-semibold text-secondary">{selectedShop.name}</span></p>
+                        <p className="text-sm text-slate-400 mb-4">From <span className="font-semibold text-[#18181b]">{selectedShop.name}</span></p>
                         <div className="space-y-3 max-h-56 overflow-y-auto">
                             {cartItems.map(item => (
                                 <div key={item.id} className="flex items-start gap-3">
@@ -373,7 +373,7 @@ const DirectDelivery = () => {
                                             <span className="font-semibold text-slate-900 ml-2 shrink-0">₹{(item.price * item.qty).toFixed(2)}</span>
                                         </div>
                                         {item.note && (
-                                            <p className="text-[10px] text-secondary bg-secondary/5 px-2 py-0.5 rounded mt-1 inline-block">
+                                            <p className="text-[10px] text-[#ca8a04] bg-[#fef9c3] px-2 py-0.5 rounded mt-1 inline-block">
                                                 📝 {item.note}
                                             </p>
                                         )}
@@ -389,19 +389,19 @@ const DirectDelivery = () => {
                             </div>
                             <div className="flex justify-between text-sm text-slate-500">
                                 <span>Delivery Fee</span>
-                                <span className="text-primary font-medium">FREE</span>
+                                <span className="text-[#059669] font-medium">FREE</span>
                             </div>
                             <div className="flex justify-between font-bold text-lg pt-1">
                                 <span className="text-slate-900">Total</span>
-                                <span className="text-secondary">₹{totalPrice.toFixed(2)}</span>
+                                <span className="text-[#18181b]">₹{totalPrice.toFixed(2)}</span>
                             </div>
                         </div>
                     </motion.div>
 
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-                        className="bg-gradient-to-r from-secondary/5 to-purple-50 border border-secondary/15 rounded-2xl p-4 flex items-center gap-3"
+                        className="bg-[#fef9c3] border border-[#facc15]/40 rounded-xl p-4 flex items-center gap-3"
                     >
-                        <Check size={20} className="text-secondary shrink-0" />
+                        <Check size={20} className="text-[#ca8a04] shrink-0" />
                         <div>
                             <p className="text-sm font-semibold text-slate-900">Estimated Delivery: {selectedShop.eta}</p>
                             <p className="text-xs text-slate-500">Zero commission · Direct from shop</p>
@@ -415,7 +415,7 @@ const DirectDelivery = () => {
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={handleOrder}
-                        className="w-full py-4 bg-gradient-to-r from-secondary to-purple-600 text-white rounded-2xl font-semibold text-lg shadow-xl shadow-secondary/25 flex items-center justify-center gap-2"
+                        className="w-full py-4 bg-[#facc15] text-[#18181b] rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 hover:bg-[#eab308] transition-colors"
                     >
                         Place Order · ₹{totalPrice.toFixed(2)}
                     </motion.button>
